@@ -114,11 +114,12 @@ function drawPlayer(){
         return x
     }
     latforce = stooth(lat_pos/20)
-    latforce = -latforce * 0.2
+    latforce = latforce * Math.abs(latforce)
+    latforce = -latforce * 0.3
 
     player.vel = player.vel.add(roadDir.orth().mul(latforce));
     player.vel = player.vel.sub(roadDir.mul(long_vel*drag));
-    player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*10));
+    player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*15));
     player.pos = player.pos.add(player.vel);
     
     ctx.drawImage(player.image, player.pos.x-15, player.pos.y-15, 30, 30);
