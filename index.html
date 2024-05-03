@@ -93,8 +93,6 @@ function drawPlayer(){
     if (accelerate){
         player.vel = player.vel.add(roadDir.mul(acceleration));
     }
-    // ctx.fillStyle = 'red';
-    // ctx.fillRect(centerPoint.x - 5, centerPoint.y - 5, 10, 10);
 
     road_center_dist = player.pos.sub(centerPoint)
     centerDist = road_center_dist.mag()
@@ -122,7 +120,11 @@ function drawPlayer(){
     player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*15));
     player.pos = player.pos.add(player.vel);
     
-    ctx.drawImage(player.image, player.pos.x-15, player.pos.y-15, 30, 30);
+    ctx.save();
+    ctx.translate(player.pos.x, player.pos.y);
+    ctx.rotate(Math.atan2(roadDir.y, roadDir.x)+1.5);
+    ctx.drawImage(player.image, -15, -15, 30, 30);
+    ctx.restore();
 }
 
 function roadFunction(t){
