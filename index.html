@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sparta</title>
+    <title>Line Race</title>
     <style>
         body {
             margin: 0;
@@ -28,7 +28,7 @@ gameTime = 0;
 lastTime = 0;
 accelerate = false;
 acceleration = 0.1;
-drag = 0.99;
+drag = 0.01;
 
 
 class Vector{
@@ -37,24 +37,20 @@ class Vector{
         this.y = y
     }
 
-    add(vector) {
-        return new Vector(this.x + vector.x, this.y + vector.y);
-    }
-    sub(vector) {
-        return new Vector(this.x - vector.x, this.y - vector.y);
-    }
-    mul(scalar) {
-        return new Vector(this.x * scalar, this.y * scalar);
-    }
-    div(scalar) {
-        return new Vector(this.x / scalar, this.y / scalar);
-    }
+    add(vector) {return new Vector(this.x + vector.x, this.y + vector.y);}
+    sub(vector) {return new Vector(this.x - vector.x, this.y - vector.y);}
+    mul(scalar) {return new Vector(this.x * scalar, this.y * scalar);}
+    div(scalar) {return new Vector(this.x / scalar, this.y / scalar);}
     mag() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
     univec() {
-        return this.div(this.mag());
+        let mg = this.mag();
+        return this.div(mg ? mg : 1);
     }
+    neg() {return new Vector(-this.x, -this.y);}
+    dot(vector) {return this.x * vector.x + this.y * vector.y;}
+    orth() {return new Vector(-this.y, this.x);}
     
 }
 
@@ -71,17 +67,60 @@ function reset(){
     player = new Player(50,canvas.height/2);
     gameTime = 0;
     lastTime = 0;
+    playerT = 0;
+    accelerate = false;
+    [centerPoint, roadDir] = roadFunction(playerT);
 }
 reset()
 
+
 function drawPlayer(){
-    t = pos2t(player.pos);
-    [p,d] = roadFunction(t);
-    if (accelerate){
-        player.vel = player.vel.add(d.mul(acceleration));
+    newT = playerT + player.vel.mag()/100;
+    for (let i = 0; i < 1; i+=0.01){
+        t = playerT + i*(newT-playerT);
+        [p,d] = roadFunction(t);
+        if (p.sub(player.pos).mag()<centerPoint.sub(player.pos).mag()){
+            centerPoint = p;
+            roadDir = d;
+            playerT = t;
+        }
     }
-    player.vel = player.vel.mul(drag);
+    if (playerT>1.){
+        window.alert('You win! '+gameTime/1000+'s');
+        reset();
+    }
+    
+    if (accelerate){
+        player.vel = player.vel.add(roadDir.mul(acceleration));
+    }
+    // ctx.fillStyle = 'red';
+    // ctx.fillRect(centerPoint.x - 5, centerPoint.y - 5, 10, 10);
+
+    road_center_dist = player.pos.sub(centerPoint)
+    centerDist = road_center_dist.mag()
+
+    long_vel = player.vel.dot(roadDir)
+    lat_vel = player.vel.dot(roadDir.orth())
+    lat_pos = road_center_dist.dot(roadDir.orth())
+
+    if (Math.abs(lat_pos) > 30) reset();
+    to_center_dir = roadDir.orth() 
+    if (to_center_dir.dot(road_center_dist) < 0) to_center_dir = to_center_dir.neg();
+
+    function stooth(x){
+        x += 1.5
+        x = x % 1
+        x = x *2 -1
+        return x
+    }
+    latforce = stooth(lat_pos/20)
+    latforce = -latforce * 0.2
+
+    player.vel = player.vel.add(roadDir.orth().mul(latforce));
+    player.vel = player.vel.sub(roadDir.mul(long_vel*drag));
+    player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*10));
     player.pos = player.pos.add(player.vel);
+    
     ctx.drawImage(player.image, player.pos.x-25, player.pos.y-25, 50, 50);
 }
 
@@ -95,12 +134,26 @@ function pos2t(pos){
     return (pos.x-50)/1200;
 }
 
-function drawRoad(){
-    ctx.fillStyle = 'green';
 
-    for (let i = 0; i < 1; i+=0.02){
-        [p,d] = roadFunction(i);
-        ctx.fillRect(p.x-5, p.y-5, 10, 10);
+roadData = []
+for (let i = 0; i <= 1.02; i+=0.02){
+    roadData.push(roadFunction(i));
+}
+
+function drawRoad(){
+    blocksize = 6
+    ctx.strokeStyle = 'gray';
+    ctx.lineWidth = 17
+    for (let ln = -20; ln < 30; ln += 20){
+        ctx.moveTo(roadData[0][0].x, roadData[0][0].y);
+        ctx.beginPath();
+        
+        for (let i = 0; i < roadData.length; i++){
+            [p,d] = roadData[i];
+            orth = new Vector(-d.y, d.x).mul(ln);
+            ctx.lineTo(p.x-orth.x, p.y-orth.y);
+        }
+        ctx.stroke()
     }
 }
 
