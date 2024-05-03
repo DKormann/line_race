@@ -23,10 +23,11 @@
 // Initialization
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+let lastTime = -1
 let gameTime = 0
-let lastTime = 0
 accelerate = false;
-acceleration = 0.1;
+acceleration = 0.2;
 drag = 0.01;
 
 
@@ -65,8 +66,9 @@ class Player{
 function reset(){
     player = new Player(50,canvas.height/2);
     
-    gameTime = 0;
+    console.log(gameTime);
     lastTime = -1
+    gameTime = 0
     playerT = 0;
     accelerate = false;
     [centerPoint, roadDir] = roadFunction(playerT);
@@ -74,7 +76,7 @@ function reset(){
 reset()
 
 
-function drawPlayer(){
+function updatePlayer(){
     newT = playerT + player.vel.mag()/100;
     for (let i = 0; i < 1; i+=0.01){
         t = playerT + i*(newT-playerT);
@@ -88,6 +90,7 @@ function drawPlayer(){
     if (playerT>1.){
         window.alert('You win! '+gameTime/1000+'s');
         reset();
+        console.log(gameTime);
     }
     
     if (accelerate){
@@ -101,7 +104,9 @@ function drawPlayer(){
     lat_vel = player.vel.dot(roadDir.orth())
     lat_pos = road_center_dist.dot(roadDir.orth())
 
-    if (Math.abs(lat_pos) > 30) reset();
+    if (Math.abs(lat_pos) > 30) {
+        reset();
+    }
     to_center_dir = roadDir.orth() 
     if (to_center_dir.dot(road_center_dist) < 0) to_center_dir = to_center_dir.neg();
 
@@ -113,18 +118,20 @@ function drawPlayer(){
     }
     latforce = stooth(lat_pos/20)
     latforce = latforce * Math.abs(latforce)
-    latforce = -latforce * 0.3
+    latforce = -latforce * 0.4
 
     player.vel = player.vel.add(roadDir.orth().mul(latforce));
     player.vel = player.vel.sub(roadDir.mul(long_vel*drag));
-    player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*15));
+    player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*25));
     player.pos = player.pos.add(player.vel);
-    
+}
+function drawPlayer(){
     ctx.save();
     ctx.translate(player.pos.x, player.pos.y);
     ctx.rotate(Math.atan2(roadDir.y, roadDir.x)+1.5);
     ctx.drawImage(player.image, -15, -15, 30, 30);
     ctx.restore();
+
 }
 
 function roadFunction(t){
@@ -160,18 +167,26 @@ function drawRoad(){
     }
 }
 
+fps = 60
 
-// Game loop
 function gameLoop(time) {
 
-    if (lastTime < 0) lastTime = time;
-    const deltaTime = time - lastTime;
-    gameTime += deltaTime;
-    lastTime = time;
+    if (lastTime <= 0) lastTime = time;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawRoad()
+
+    
+
+    while (lastTime < time){
+    
+        updatePlayer();
+        if (lastTime<0) break
+        lastTime += 1000/fps;
+        gameTime += 1000/fps;
+    }
     drawPlayer();
+    
 
     requestAnimationFrame(gameLoop);
 }
