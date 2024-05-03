@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sparta</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="1600" height="900"></canvas>
+
+    <script>
+
+// Initialization
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+gamePaused = false;
+gameTime = 0;
+lastTime = 0;
+accelerate = false;
+acceleration = 0.1;
+drag = 0.99;
+
+
+class Vector{
+    constructor(x,y){
+        this.x = x
+        this.y = y
+    }
+
+    add(vector) {
+        return new Vector(this.x + vector.x, this.y + vector.y);
+    }
+    sub(vector) {
+        return new Vector(this.x - vector.x, this.y - vector.y);
+    }
+    mul(scalar) {
+        return new Vector(this.x * scalar, this.y * scalar);
+    }
+    div(scalar) {
+        return new Vector(this.x / scalar, this.y / scalar);
+    }
+    mag() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+    univec() {
+        return this.div(this.mag());
+    }
+    
+}
+
+class Player{
+    constructor(x,y){
+        this.pos = new Vector(x,y)
+        this.vel = new Vector(0,0)
+        this.image = new Image();
+        this.image.src = 'tiles/monster_L4.png';
+    }
+}
+
+function reset(){
+    player = new Player(50,canvas.height/2);
+    gameTime = 0;
+    lastTime = 0;
+}
+reset()
+
+function drawPlayer(){
+    t = pos2t(player.pos);
+    [p,d] = roadFunction(t);
+    if (accelerate){
+        player.vel = player.vel.add(d.mul(acceleration));
+    }
+    player.vel = player.vel.mul(drag);
+    player.pos = player.pos.add(player.vel);
+    ctx.drawImage(player.image, player.pos.x-25, player.pos.y-25, 50, 50);
+}
+
+function roadFunction(t){
+    p = new Vector(1200*t+50, Math.sin(t*15) * 100 + canvas.height/2);
+    d = new Vector(1200, 15 * Math.cos(t*15) * 100);
+    return [p,d.univec()];
+}
+
+function pos2t(pos){
+    return (pos.x-50)/1200;
+}
+
+function drawRoad(){
+    ctx.fillStyle = 'green';
+
+    for (let i = 0; i < 1; i+=0.02){
+        [p,d] = roadFunction(i);
+        ctx.fillRect(p.x-5, p.y-5, 10, 10);
+    }
+}
+
+
+// Game loop
+function gameLoop(time) {
+    const deltaTime = gamePaused ? 0 : time - lastTime;
+    gameTime += deltaTime;
+    lastTime = time;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawRoad()
+    drawPlayer();
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+
+addEventListener('keydown', function(event) {
+    if (event.key === ' ') accelerate = true;
+    if (event.key === 'r') reset();
+});
+
+addEventListener('keyup', function(event) {
+    if (event.key === ' ') accelerate = false;
+});
+
+requestAnimationFrame(gameLoop);
+
+    </script>
+</html>
