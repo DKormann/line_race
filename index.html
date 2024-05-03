@@ -23,9 +23,8 @@
 // Initialization
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-gamePaused = false;
-gameTime = 0;
-lastTime = 0;
+let gameTime = 0
+let lastTime = 0
 accelerate = false;
 acceleration = 0.1;
 drag = 0.01;
@@ -65,8 +64,9 @@ class Player{
 
 function reset(){
     player = new Player(50,canvas.height/2);
+    
     gameTime = 0;
-    lastTime = 0;
+    lastTime = -1
     playerT = 0;
     accelerate = false;
     [centerPoint, roadDir] = roadFunction(playerT);
@@ -160,7 +160,10 @@ function drawRoad(){
 
 // Game loop
 function gameLoop(time) {
-    const deltaTime = gamePaused ? 0 : time - lastTime;
+
+    if (lastTime < 0) lastTime = time;
+    const deltaTime = time - lastTime;
+    console.log(deltaTime);
     gameTime += deltaTime;
     lastTime = time;
 
