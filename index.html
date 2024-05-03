@@ -163,7 +163,6 @@ function gameLoop(time) {
 
     if (lastTime < 0) lastTime = time;
     const deltaTime = time - lastTime;
-    console.log(deltaTime);
     gameTime += deltaTime;
     lastTime = time;
 
@@ -173,7 +172,6 @@ function gameLoop(time) {
 
     requestAnimationFrame(gameLoop);
 }
-
 
 
 addEventListener('keydown', function(event) {
