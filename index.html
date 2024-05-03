@@ -58,7 +58,7 @@ class Player{
         this.pos = new Vector(x,y)
         this.vel = new Vector(0,0)
         this.image = new Image();
-        this.image.src = 'tiles/monster_L4.png';
+        this.image.src = 'tiles/ghost.png';
     }
 }
 
@@ -121,7 +121,7 @@ function drawPlayer(){
     player.vel = player.vel.sub(roadDir.orth().mul(lat_vel*drag*10));
     player.pos = player.pos.add(player.vel);
     
-    ctx.drawImage(player.image, player.pos.x-25, player.pos.y-25, 50, 50);
+    ctx.drawImage(player.image, player.pos.x-15, player.pos.y-15, 30, 30);
 }
 
 function roadFunction(t){
