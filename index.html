@@ -27,8 +27,10 @@ const ctx = canvas.getContext("2d");
 let lastTime = -1
 let gameTime = 0
 accelerate = false;
-acceleration = 0.2;
-drag = 0.01;
+acceleration = 0.18;
+drag = 0.008;
+grip = 0.5
+
 
 
 class Vector{
@@ -118,7 +120,7 @@ function updatePlayer(){
     }
     latforce = stooth(lat_pos/20)
     latforce = latforce * Math.abs(latforce)
-    latforce = -latforce * 0.4
+    latforce = -latforce * grip
 
     player.vel = player.vel.add(roadDir.orth().mul(latforce));
     player.vel = player.vel.sub(roadDir.mul(long_vel*drag));
